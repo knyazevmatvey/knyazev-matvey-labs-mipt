@@ -1,5 +1,2 @@
 # knyazev-matvey-labs-mipt
-text
-ok
-new text
-that i want to commit
+(sorry for mess last time and names with spaces in lab2)
