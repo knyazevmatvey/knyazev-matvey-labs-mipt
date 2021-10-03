@@ -184,21 +184,22 @@ line(screen, black, (x1*a, y1*b), (x2*a, y2*b), 2)
 
 #heart
 l = 120
-r = 0.20 * l
+r = 0.24 * l
 x0 = x2 * a
 y0 = y2 * b
 phi = 40 * (pi/180)
+k = 0.30
 cos = math.cos(phi)
 sin = math.sin(phi)
 polygon(screen, red, [(x0, y0), (x0 + l*cos, y0 - l*sin),
-                      (x0 + l*math.cos(phi + pi/4), y0 - l*math.sin(phi + pi/4))])
+                      (x0 + l*math.cos(phi + k*pi), y0 - l*math.sin(phi + k*pi))])
 
-x1 = x0 + l*cos - 0.25 * (l*2*math.sin(pi/8)) * math.cos(3*pi/8 - phi)
-y1 = y0 - l*sin - 0.25 * (l*2*math.sin(pi/8)) * math.sin(3*pi/8 - phi)
+x1 = x0 + l*cos - 0.25 * (l*2*math.sin(pi*k/2)) * math.cos((1-k)*pi/2 - phi)
+y1 = y0 - l*sin - 0.25 * (l*2*math.sin(pi*k/2)) * math.sin((1-k)*pi/2 - phi)
 circle(screen, red, (x1, y1), r)
 
-x2 = x0 + l*cos - 0.73 * (l*2*math.sin(pi/8)) * math.cos(3*pi/8 - phi)
-y2 = y0 - l*sin - 0.73 * (l*2*math.sin(pi/8)) * math.sin(3*pi/8 - phi)
+x2 = x0 + l*cos - 0.73 * (l*2*math.sin(pi*k/2)) * math.cos((1-k)*pi/2 - phi)
+y2 = y0 - l*sin - 0.73 * (l*2*math.sin(pi*k/2)) * math.sin((1-k)*pi/2 - phi)
 circle(screen, red, (x2, y2), r)
 
 
