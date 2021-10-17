@@ -4,6 +4,7 @@ from random import randint
 
 pygame.init()
 
+# некоторые из этих переменных еще не использованы, но могут быть потом
 h_res = 0
 height = 800
 width = 800
@@ -12,6 +13,7 @@ dt = 1/FPS
 screen = pygame.display.set_mode((width, height + h_res))
 
 
+# объявление цветов
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 YELLOW = (255, 255, 0)
@@ -23,12 +25,19 @@ COLORS = [RED, BLUE, YELLOW, GREEN, MAGENTA, CYAN]
 
 
 class Balls:
+    '''
+    Класс, содержащий шарики и связанные с ними функции
+    '''
     def __init__(self):
+        '''
+        Инициализируются случайные радиус шарика, цвет и скорость.
+        Координаты генерируются случайно, но шар не задевает границы и имеет
+        отступ от них хотя бы в 30.
+        '''
         self.r = randint(10, 50)
         self.v_x = randint(-100, 100)
         self.v_y = randint(-100, 100)
-        #Color = (randint(0, 255), randint(0, 255), randint(0, 255))
-        self.color = COLORS[randint(0, 5)] #Color #
+        self.color = COLORS[randint(0, 5)] 
         
         self.x = randint(30+r, width-30-r)
         self.y = randint(30+r, height-30-r)
@@ -36,26 +45,46 @@ class Balls:
         
 
     def move(self, times = 1):
+        '''
+        Передвигает шарик согласно его скорости, при этом dt=1/FPS выбрано так,
+        что численное значение скорости совпадает с перемещением за 1 с
+        '''
         self.x += self.v_x * dt
         self.y += self.v_y * dt
 
     def xyr(self):
+        '''
+        Функция, возвращающая координаты и радус
+        '''
         return self.x, self.y, self.r
 
     def vx_vy(self):
+        '''
+        Функция, возвращающая компоненты скорости
+        '''
         return self.v_x, self.v_y
 
     def change_velocity(self, v1, v2):
+        '''
+        Функция изменяет скорость на заданную
+        '''
         self.v_x = v1
         self.v_y = v2
 
     def change_position(self, x, y):
+        '''
+        Функция изменяет координаты на заданные
+        (Не используется в программе)
+        '''
         self.x = x
         self.y = y
 
         
 
     def reflect_from_walls(self):
+        '''
+        Функция отражает все шарики от стен
+        '''
         if self.x > width - self.r:
             self.x = width - self.r
             self.v_x = - self.v_x
@@ -69,12 +98,21 @@ class Balls:
             self.v_y = - self.v_y
 
     def show(self):
+        '''
+        Функция рисует шарик
+        '''
         circle(screen, self.color, (self.x, self.y), self.r)
 
 
 
 
 def reflect_from_others():
+    '''
+    Функция проверяет все шарики на пересечение и пересекающиеся шарики отражает
+    друг от друга
+    При этом соударение происходит будто массы шаров пропорциональны их площадям,
+    а сила во время удара направлено вдоль линии, соединяющей центры
+    '''
     for i in range(len(balls)):
         for j in range(i+1, len(balls)):
             ball1 = balls[i]
@@ -129,33 +167,39 @@ pygame.display.update()
 clock = pygame.time.Clock()
 finished = False
 
+# массив, который будет содержать активные (не выбывшие) шарики
 balls = []
 
 t = 0
 n = 0
+
+# генерируем 30 шариков
 for i in range(30):
     ball = Balls()
     balls.append(ball)
+
+
+    
 while not finished:
     screen.fill(BLACK)
     clock.tick(FPS)
     t += 1
     
-     
+    # каждую секунду добавляем шарик
     if (t % FPS == 0):
         ball = Balls()
         balls.append(ball)
 
     
-
-    
-    
+    # двигаем шарики и отражаем
     for ball in balls:
         ball.move()
         ball.reflect_from_walls()
         reflect_from_others()
         ball.show()
-
+        
+    # убираем из массива шарики, по которым попал игрок
+    # повышаем счет на количество убитых шаров
     hit = False
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -169,6 +213,8 @@ while not finished:
                     n += 1
                     hit = True
 
+        
+    # отоброжаем результат при изменении
     if hit:
         print(n)
                     
