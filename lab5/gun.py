@@ -16,16 +16,21 @@ CYAN = 0x00FFCC
 BLACK = 0x000000
 WHITE = 0xFFFFFF
 GREY = 0x7D7D7D
+LIGHT_BLUE = 0x66ffff
 GAME_COLORS = [RED, BLUE, YELLOW, GREEN, MAGENTA, CYAN]
 
 WIDTH = 800
 HEIGHT = 600
 delta = 10
+gun_width = 10
 
 g = 1           # гравитация
 k = 0.5         # коэф угасания скорости при отражении от стенок
 
+
+
 def rotated_rect(x, y, a, b, angle, screen, color):
+    ''' Рисует прямоугольник, повернутый на angle (в радианах)'''
     cos = math.cos(angle)
     sin = math.sin(angle)
     pygame.draw.polygon(screen, color,
@@ -82,12 +87,19 @@ class Ball:
             (self.x, self.y),
             self.r
         )
+        pygame.draw.circle(
+            self.screen,
+            BLACK,
+            (self.x, self.y),
+            self.r,
+            width = 2
+        )
 
     def hittest(self, obj):
-        """Функция проверяет сталкивалкивается ли данный обьект с целью, описываемой в обьекте obj.
+        """Функция проверяет сталкивалкивается ли данный обьект с целью, описываемой в объекте obj.
 
         Args:
-            obj: Обьект, с которым проверяется столкновение.
+            obj: Объект, с которым проверяется столкновение.
         Returns:
             Возвращает True в случае столкновения мяча и цели. В противном случае возвращает False.
         """
@@ -104,6 +116,7 @@ class Gun:
         self.f2_on = 0
         self.an = 1
         self.color = GREY
+        self.health = 5
 
     def fire2_start(self, event):
         self.f2_on = 1
@@ -138,7 +151,7 @@ class Gun:
             self.color = GREY
 
     def draw(self):
-        rotated_rect(20, 450, 30, 100, self.an + math.pi/2, self.screen, self.color)
+        rotated_rect(20, 450, gun_width, 20 + 0.8*self.f2_power, self.an + math.pi/2, self.screen, self.color)
 
     def power_up(self):
         if self.f2_on:
@@ -151,19 +164,81 @@ class Gun:
 
 class Target(Ball):
     def __init__(self, screen: pygame.Surface):
+        """ Инициализация новой цели. """
         self.screen = screen
         self.live = 1
         self.points = 0
+        self.time = 0
 
-        """ Инициализация новой цели. """
-        self.x = rnd(600, 780)
-        self.y = rnd(300, 550)
-        self.r = rnd(2, 50)
+        self.vy = rnd(-5, 5)
+
+        global targets
+        self.r = rnd(20, 50)
         self.color = RED
+        
+        finished = False
+        while not finished:
+            self.x = rnd(600, 780)
+            self.y = rnd(300, 550)
+            ok = True
+            for t in targets:
+                if self.hittest(t): ok = False
+            if ok: finished = True
+                
+                
 
     def hit(self, points=1):
         """Попадание шарика в цель."""
         self.points += points
+
+    def move(self):
+        """Переместить мяч по прошествии единицы времени.
+
+        Не учитывает гравитацию
+        """
+        self.y -= self.vy
+
+        if (self.y < self.r):
+            self. y = self.r
+            self.vy = -self.vy
+
+        if (self.y > HEIGHT - self.r):
+            self.y = HEIGHT - self.r
+            self.vy = -self.vy
+
+class UFO:
+    def __init__(self):
+        self.health = 3
+        self.y = rnd(0, 100)
+        self.x = rnd(50, WIDTH-250)
+        self.vx = rnd(-10, 10)
+
+    def draw(self):
+        x = self.x
+        y = self.y
+        pygame.draw.circle(screen, LIGHT_BLUE, (x+100, y+100), 50)
+        pygame.draw.rect(screen, WHITE, (x+50, y+100, 100, 50))
+        pygame.draw.polygon(screen, GREY, [(x+50, y+100), (x+0, y+130), (x+200, y+130),
+                                           (x+150, y+100)])
+        if self.health == 3:
+            pygame.draw.circle(screen, GREEN, (100, 115), 10)
+        else:
+            pygame.draw.circle(screen, RED, (100, 115), 10)
+        if self.health >= 2:
+            pygame.draw.circle(screen, GREEN, (50, 115), 10)
+        if self.health >= 1:
+            pygame.draw.circle(screen, GREEN, (150, 115), 10)
+
+    def move(self):
+        self.x += self.vx
+
+        if self.x < 0:
+            self.x = 0
+            self.vx -= self.vx
+        if self.x > WIDTH - 200:
+            self.x = WIDTH - 200
+            self.vx -= self.vx
+        
 
 
 
@@ -181,6 +256,13 @@ targets = []
 for i in range(2):
     temp = Target(screen)
     targets.append(temp)
+
+enemies = []
+for i in range(1):
+    temp = UFO()
+    enemies.append(temp)
+
+time = 0
 
 while not finished:
     screen.fill(WHITE)
@@ -202,6 +284,12 @@ while not finished:
         elif event.type == pygame.MOUSEMOTION:
             gun.targetting(event)
 
+    for t in targets:
+        t.move()
+        #t.time += 1
+        #if (t.time % FPS == 0):
+        #    t.vy = -t.vy
+    
     for b in balls:
         for t in targets:
             b.move()
@@ -212,10 +300,19 @@ while not finished:
                 targets.append(Target(screen))
     gun.power_up()
 
+    for e in enemies:
+        e.draw()
+        e.move()
+
+    # Убираем старые шарики
     for b in balls:
         b.live -= 0.6
         if b.live <= 0:
             balls.remove(b)
+
+    
+
+    time += 1
 
     
 
